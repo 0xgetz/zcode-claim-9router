@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZCode Pipeline Console</title>
+<style>
+  :root{
+    --bg:#0b0d12; --panel:#141821; --panel2:#1b2130; --line:#262d3d;
+    --txt:#e7ecf3; --dim:#8b97ab; --acc:#5b8cff; --ok:#38c172; --warn:#e3a008; --err:#f05252;
+    font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);min-height:100vh}
+  header{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px}
+  header h1{font-size:18px;margin:0;font-weight:650;letter-spacing:.2px}
+  header .sub{color:var(--dim);font-size:12px}
+  .wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:18px 22px;max-width:1200px}
+  @media(max-width:900px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .card h2{font-size:14px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+  .card p.note{color:var(--dim);font-size:12px;margin:0 0 12px;line-height:1.4}
+  label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
+  input,textarea{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+    border-radius:9px;padding:9px 11px;font-size:13px;font-family:inherit}
+  textarea{resize:vertical;min-height:56px}
+  input:focus,textarea:focus{outline:none;border-color:var(--acc)}
+  .row{display:flex;gap:10px}
+  .row>div{flex:1}
+  button{cursor:pointer;border:none;border-radius:10px;padding:11px 16px;font-size:13px;font-weight:600;
+    color:#fff;background:var(--acc);margin-top:14px;width:100%;transition:.15s}
+  button:hover{filter:brightness(1.1)}
+  button:disabled{opacity:.45;cursor:default}
+  .badge{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--panel2);color:var(--dim);
+    border:1px solid var(--line);font-weight:600}
+  .badge.running{background:#1e2a44;color:#8fb3ff;border-color:#2c4a86}
+  .badge.done{background:#12331f;color:var(--ok);border-color:#1d5c34}
+  .badge.error{background:#3a1a1a;color:var(--err);border-color:#6b2323}
+  .log{grid-column:1/-1}
+  #log{background:#080a0e;border:1px solid var(--line);border-radius:12px;padding:12px;
+    height:280px;overflow:auto;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+  .l-out{color:#c9d4e3}.l-ok{color:var(--ok)}.l-err{color:var(--err)}
+  .hint{font-size:12px;color:var(--dim);margin-top:8px;line-height:1.4}
+  code{background:var(--panel2);padding:1px 5px;border-radius:5px;font-size:11px}
+  a{color:var(--acc)}
+</style>
+</head>
+<body>
+<header>
+  <h1>ZCode Pipeline Console</h1>
+  <span class="sub">inject &rarr; claim Start Plan &rarr; connect 9Router</span>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <h2>1 &middot; Inject <span class="badge" id="badge-inject">idle</span></h2>
+    <p class="note">Mint a ZCode JWT from a z.ai session. Paste a bearer <b>token</b> or a
+      <b>cookies</b> string (or export).</p>
+    <label>z.ai bearer token</label>
+    <textarea id="token" placeholder="eyJhbGciOi..."></textarea>
+    <label>z.ai cookies (optional)</label>
+    <input id="cookies" placeholder="a=b; c=d   (or path to a cookies JSON)">
+    <label>email (optional, for account bookkeeping)</label>
+    <input id="email" placeholder="you@example.com">
+    <button id="btn-inject" onclick="doInject()">Inject / mint JWT</button>
+    <div class="hint">Writes the JWT to <code>outputs/…/console_inject.json</code> and prints it in the log.</div>
+  </div>
+
+  <div class="card">
+    <h2>2 &middot; Claim Start Plan <span class="badge" id="badge-claim">idle</span></h2>
+    <p class="note">Needs the Aliyun <b>captchaVerifyParam</b>. Solve the slider in the z.ai
+      tab (the tab next to this one), then copy the param here. <b>Tip:</b> the param is a long
+      base64 blob.</p>
+    <label>captchaVerifyParam</label>
+    <textarea id="param" placeholder="paste the param from the solved captcha"></textarea>
+    <label>zcode JWT file (optional &mdash; else it re-mints from token/cookies above)</label>
+    <input id="jwtfile" placeholder="/tmp/bcode/zjwt.txt">
+    <button id="btn-claim" onclick="doClaim()">Claim Start Plan</button>
+    <div class="hint">Paste the param right after solving &mdash; it is single-use and short-lived.</div>
+  </div>
+
+  <div class="card">
+    <h2>3 &middot; Connect 9Router <span class="badge" id="badge-connect">idle</span></h2>
+    <p class="note">Register the claimed account as a <code>glm</code> provider connection in
+      9Router.</p>
+    <div class="row">
+      <div><label>9Router base</label><input id="base" value="http://localhost:20128"></div>
+      <div><label>password</label><input id="rpass" value="123456"></div>
+    </div>
+    <button id="btn-connect" onclick="doConnect()">Connect to 9Router</button>
+    <div class="hint">Uses the JWT file above, or re-mints from the token/cookies on the left.</div>
+  </div>
+
+  <div class="card">
+    <h2>Captcha solver tab</h2>
+    <p class="note">The Aliyun slider runs in the <b>z.ai tab</b>. If that tab is not open yet,
+      the bridge can open it. After you drag the slider and it passes, the param is written to
+      <code>/tmp/bcode/login_param.txt</code> and printed in the log.</p>
+    <div class="row">
+      <div><button id="btn-opencaptcha" onclick="doOpenCaptcha()">Open z.ai captcha tab</button></div>
+      <div><button id="btn-grabparam" onclick="doGrabParam()">Grab captured param &rarr; box 2</button></div>
+    </div>
+    <div class="hint">Then click <b>Claim Start Plan</b>.</div>
+  </div>
+
+  <div class="card log">
+    <h2>Log <span class="badge" id="badge-log">ready</span></h2>
+    <div id="log"></div>
+    <div class="hint">Buttons talk to the local Python bridge over the browser's CDP session &mdash; no network ports needed.</div>
+  </div>
+
+</div>
+
+<script>
+const logEl = document.getElementById('log');
+function ts(){ const d=new Date(); return d.toTimeString().slice(0,8); }
+window.__bcodeLog = function(level, text){
+  const d=document.createElement('div');
+  d.className='l-'+level;
+  d.textContent='['+ts()+'] '+text;
+  logEl.appendChild(d); logEl.scrollTop=logEl.scrollHeight;
+};
+window.__bcodeStatus = function(stage, state, msg){
+  const b=document.getElementById('badge-'+stage); if(!b) return;
+  b.className='badge '+state; b.textContent=(msg?msg:state);
+  const btn=document.getElementById('btn-'+stage); if(btn) btn.disabled=(state==='running');
+};
+
+function send(action, payload){
+  const cmd={action:action, payload:payload||{}};
+  if(typeof window.bcodeCmd!=='function'){
+    window.__bcodeLog('err','bcodeCmd binding not available (bridge not attached)'); return;
+  }
+  window.bcodeCmd(JSON.stringify(cmd));
+}
+function doInject(){
+  send('inject',{token:document.getElementById('token').value,
+                 cookies:document.getElementById('cookies').value,
+                 email:document.getElementById('email').value});
+}
+function doClaim(){
+  send('claim',{captcha_param:document.getElementById('param').value,
+                jwt:document.getElementById('jwtfile').value,
+                token:document.getElementById('token').value,
+                cookies:document.getElementById('cookies').value,
+                email:document.getElementById('email').value});
+}
+function doConnect(){
+  send('connect',{base:document.getElementById('base').value,
+                  password:document.getElementById('rpass').value,
+                  jwt:document.getElementById('jwtfile').value,
+                  token:document.getElementById('token').value,
+                  cookies:document.getElementById('cookies').value});
+}
+function doOpenCaptcha(){ send('opencaptcha',{}); }
+function doGrabParam(){ send('grabparam',{}); }
+
+window.__bcodeLog('ok','console loaded — waiting for bridge');
+</script>
+</body>
+</html>

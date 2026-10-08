@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="1200" height="320" role="img" aria-label="ZCode Claim 9Router">
+  <defs>
+    <linearGradient id="bbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0e1a"/>
+      <stop offset="1" stop-color="#141a30"/>
+    </linearGradient>
+    <linearGradient id="tx" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#eaf0ff"/>
+      <stop offset="1" stop-color="#9db4ff"/>
+    </linearGradient>
+    <linearGradient id="ac" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5b8cff"/>
+      <stop offset="0.55" stop-color="#7c5cff"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <filter id="g2" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="320" fill="url(#bbg)"/>
+  <g opacity="0.14" stroke="url(#ac)" stroke-width="1.4" fill="none">
+    <path d="M0 250 L260 180 L520 250 L780 180 L1040 250 L1200 200"/>
+    <path d="M0 70 L260 140 L520 70 L780 140 L1040 70 L1200 120"/>
+  </g>
+
+  <!-- mark -->
+  <g transform="translate(90,80) scale(0.95)">
+    <path d="M100 42 L150 71 L150 129 L100 158 L50 129 L50 71 Z" fill="none" stroke="url(#ac)" stroke-width="6" stroke-linejoin="round" filter="url(#g2)"/>
+    <path d="M74 74 H126 L74 126 H126" fill="none" stroke="url(#ac)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" filter="url(#g2)"/>
+    <g fill="#22d3ee">
+      <circle cx="100" cy="42" r="7"/><circle cx="150" cy="71" r="7"/><circle cx="150" cy="129" r="7"/>
+      <circle cx="100" cy="158" r="7"/><circle cx="50" cy="129" r="7"/><circle cx="50" cy="71" r="7"/>
+    </g>
+  </g>
+
+  <text x="330" y="150" font-family="Segoe UI,Helvetica,Arial,sans-serif" font-size="58" font-weight="700" fill="url(#tx)">ZCode Claim</text>
+  <text x="332" y="205" font-family="Segoe UI,Helvetica,Arial,sans-serif" font-size="30" font-weight="600" fill="url(#ac)">· 9Router Pipeline ·</text>
+  <text x="334" y="250" font-family="Segoe UI,Helvetica,Arial,sans-serif" font-size="20" fill="#8fa2c4">inject &#8594; claim free Start Plan &#8594; connect GLM to 9Router</text>
+</svg>

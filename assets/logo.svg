@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="ZCode Claim 9Router">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d1220"/>
+      <stop offset="1" stop-color="#151b30"/>
+    </linearGradient>
+    <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5b8cff"/>
+      <stop offset="0.55" stop-color="#7c5cff"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="grad2" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#5b8cff"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect x="6" y="6" width="188" height="188" rx="44" fill="url(#bg)"/>
+  <rect x="6" y="6" width="188" height="188" rx="44" fill="none" stroke="url(#grad)" stroke-width="2.5" opacity="0.55"/>
+
+  <!-- hexagon node ring (router) -->
+  <g filter="url(#glow)" fill="none" stroke="url(#grad)" stroke-width="5" stroke-linejoin="round">
+    <path d="M100 42 L150 71 L150 129 L100 158 L50 129 L50 71 Z" opacity="0.9"/>
+  </g>
+
+  <!-- Z mark -->
+  <path d="M74 74 H126 L74 126 H126" fill="none" stroke="url(#grad2)" stroke-width="12"
+        stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+
+  <!-- router ports -->
+  <g fill="url(#grad2)">
+    <circle cx="100" cy="42" r="6.5"/>
+    <circle cx="150" cy="71" r="6.5"/>
+    <circle cx="150" cy="129" r="6.5"/>
+    <circle cx="100" cy="158" r="6.5"/>
+    <circle cx="50" cy="129" r="6.5"/>
+    <circle cx="50" cy="71" r="6.5"/>
+  </g>
+</svg>

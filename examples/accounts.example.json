@@ -1,0 +1,17 @@
+{
+  "_comment": "Batch input for: python src/zcode_claim.py --accounts accounts.json --connect",
+  "accounts": [
+    {
+      "email": "you@example.com",
+      "token": "PASTE_ZAI_BEARER_TOKEN_HERE"
+    },
+    {
+      "email": "second@example.com",
+      "password": "PASTE_ZAI_PASSWORD_HERE"
+    },
+    {
+      "email": "third@example.com",
+      "cookies": "a=b; c=d; session=PASTE_HERE"
+    }
+  ]
+}

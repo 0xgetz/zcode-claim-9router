@@ -1,0 +1,29 @@
+# Secrets & local state — never commit these
+.env
+*.env
+*.key
+*.pem
+token.txt
+tokens.json
+cookies.json
+zjwt.txt
+jwtset.json
+claimed.json
+*.session.json
+login_param.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
