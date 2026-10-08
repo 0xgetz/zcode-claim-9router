@@ -61,13 +61,17 @@ token / cookies z.ai ──▶ OAuth consent ──▶ JWT ZCode ──▶ klaim
 
 ## Dua cara menjalankannya
 
+**Tidak butuh akun cloud.** Toolkit ini membawa browsernya sendiri: kalau kamu tidak menunjuk ke browser tertentu, ia otomatis meluncurkan Chrome/Chromium lokal dan menyuntikkan console ke sana. Di mesin tanpa display (VPS) ia otomatis headless.
+
 ### 1. Web UI console (disarankan)
 
-Dashboard yang bisa diklik disuntikkan ke cloud browser; tombol-tombolnya
+Dashboard yang bisa diklik disuntikkan ke browser (lokal atau cloud); tombol-tombolnya
 menggerakkan alur lewat sesi CDP yang sama — tanpa port, tanpa tunnel.
 
 ```bash
-python src/console_bridge.py --cdp "$BU_CDP_WS"
+python src/console_bridge.py                 # auto-launch Chrome lokal
+python src/console_bridge.py --headless      # VPS
+python src/console_bridge.py --connect 127.0.0.1:9222
 ```
 
 Buka live view browser. **ZCode Pipeline Console** memungkinkan kamu:
@@ -96,7 +100,9 @@ python src/zcode_claim.py --jwt-file zjwt.txt --status
 
 - Python 3.9+
 - `websockets` (untuk console bridge) dan `playwright` (untuk langkah berbasis browser)
-- Chromium yang dapat dijangkau lewat CDP (mis. cloud browser Browser Use via `$BU_CDP_WS`)
+- **Browser.** Utamakan Google Chrome / Chromium sistem. Jika tidak ada, `run.sh` memasang Chromium bawaan Playwright (`python -m playwright install chromium`).
+- **Koneksi browser (opsional).** Tunjuk browser yang sudah jalan dengan `--cdp "wss://…"`, `--connect host:port`, atau biarkan auto-launch di `localhost:9222` (`--port` untuk ganti). `--no-launch` mencegah spawn.
+> **VPS headless.** Chromium Playwright butuh pustaka sistem biasa (`libglib`, `libnss3`, `libx11`, `libgbm`, `libasound2`, …): `python -m playwright install-deps chromium`. Tanpa display bridge otomatis memakai `--headless=new`.
 
 ```bash
 pip install websockets playwright

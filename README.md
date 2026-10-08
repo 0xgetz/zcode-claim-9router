@@ -9,7 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-22d3ee?style=flat-square)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-5b8cff?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![9Router](https://img.shields.io/badge/9Router-glm%20provider-7c5cff?style=flat-square)](https://9router.com)
-[![Platform](https://img.shields.io/badge/Cloud-Browser%20%2F%20CDP-0ea5e9?style=flat-square)](#architecture)
+[![Platform](https://img.shields.io/badge/Browser-local%20%2F%20cloud%20CDP-0ea5e9?style=flat-square)](#requirements)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-38c172?style=flat-square)](CONTRIBUTING.md)
 
 [English](README.md) · [Indonesia](docs/README.id.md) · [中文](docs/README.zh.md) · [日本語](docs/README.ja.md) · [Español](docs/README.es.md)
@@ -99,24 +99,33 @@ z.ai token / cookies ──▶ OAuth consent ──▶ ZCode JWT ──▶ claim
 | Mint z.ai coding-plan API key | ✅ verified |
 | Register key into 9Router `glm` pool | ✅ verified against a mock 9Router |
 
-## Two ways to run it
+## Running it
+
+**No cloud account is required.** The toolkit brings its own browser: if you
+don't point it at one, it auto-launches a local Chrome/Chromium and injects the
+console into it. On a machine with no display (a VPS) it goes headless by itself.
 
 ### 1. Web UI console (recommended)
 
-The launcher installs the two light deps, then injects the console into your
-browser and keeps it live:
-
 ```bash
-./run.sh "$BU_CDP_WS"          # or: ./run.sh wss://<host>/devtools/browser/<id>
+./run.sh                       # auto-launch a local Chrome + inject the console
+./run.sh --headless            # force headless (VPS)
+./run.sh --connect 127.0.0.1:9222   # attach to a Chrome you already run
+./run.sh --cdp "wss://..."     # use a remote/cloud browser instead
+./run.sh --port 9222           # pick the local debug port
+./run.sh --profile work        # reuse a named profile (keeps logins)
 ```
 
-Prefer manual? The equivalent is:
+Prefer manual? The same thing:
 
 ```bash
-python src/console_bridge.py --cdp "$BU_CDP_WS"
+python src/console_bridge.py                 # auto-launch local Chrome
+python src/console_bridge.py --headless      # headless
+python src/console_bridge.py --connect 127.0.0.1:9222
 ```
 
-Open the browser's live view and drive the four pages:
+Then open the browser (on a headless VPS use the debug URL from the log, or
+`--connect` a Chrome with a window) and drive the four pages:
 
 1. **Dashboard** — paste a z.ai token/cookies → *Inject / mint JWT* → claim → connect,
    or hit **Run full pipeline** in one click.
@@ -128,12 +137,16 @@ Open the browser's live view and drive the four pages:
 ### 2. CLI orchestrator
 
 ```bash
-# inject a token, mint the JWT, submit a human-solved captcha, connect 9Router
+# local headless browser (no --cdp): mint the JWT, submit a solved captcha, connect
+python src/zcode_claim.py --headless --email me@x.com --token eyJ... \
+    --captcha-param '<param>' --connect --base http://localhost:20128
+
+# or point at any CDP browser
 python src/zcode_claim.py --cdp "$BU_CDP_WS" --email me@x.com --token eyJ... \
     --captcha-param '<param>' --connect --base http://localhost:20128
 
 # batch of accounts → register every key into the glm pool
-python src/zcode_claim.py --cdp "$BU_CDP_WS" --accounts accounts.json \
+python src/zcode_claim.py --headless --accounts accounts.json \
     --connect --base http://localhost:20128 --out claimed.json
 
 # check a JWT you already hold
@@ -143,12 +156,26 @@ python src/zcode_claim.py --jwt-file zjwt.txt --status
 ## Requirements
 
 - Python 3.9+
-- `websockets` (for the console bridge) and `playwright` (for browser-driven steps)
-- A Chromium reachable over CDP (e.g. a Browser Use cloud browser via `$BU_CDP_WS`)
+- `websockets` (console bridge) and `playwright` (browser-driven steps)
 
 ```bash
 pip install websockets playwright
 ```
+
+- **A browser.** Prefer a system Google Chrome / Chromium. If none is present,
+  `run.sh` installs Playwright's bundled Chromium (`python -m playwright install
+  chromium`). The resolver looks for `google-chrome`, `chromium`,
+  `chromium-browser`, `chrome`, the usual macOS/Windows install paths, and the
+  Playwright cache (`~/.cache/ms-playwright/chromium-*/…`).
+- **Browser connection (optional).** Point at an existing browser with
+  `--cdp "wss://…"`, `--connect host:port`, or just let it auto-launch on
+  `localhost:9222` (override with `--port`). `--no-launch` refuses to spawn one.
+
+> **Headless VPS / minimal Linux.** Playwright's Chromium needs the usual system
+> libraries (`libglib`, `libnss3`, `libx11`, `libgbm`, `libasound2`, …). Install
+> them with `python -m playwright install-deps chromium` (Debian/Ubuntu) or your
+> distro's package manager. Without a display the bridge forces `--headless=new`
+> automatically; with one you get a normal window.
 
 ## Repository layout
 
@@ -167,6 +194,7 @@ zcode-claim-9router/
 │   ├── zcode_claim.py     CLI orchestrator
 │   ├── solverify.py       third-party Aliyun solver client
 │   ├── console.html       Web UI console (4 pages)
+│   ├── browser.py         CDP resolver: find/auto-launch Chrome, headless on VPS
 │   └── console_bridge.py  CDP bridge + RPC backend for the console
 ├── run.sh             one-command launcher (auto-start the bridge)
 ├── CONTRIBUTING.md

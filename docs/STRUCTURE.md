@@ -23,13 +23,14 @@ flowchart LR
     subgraph UI["🖥️ Web UI console"]
         HTML["console.html<br/>dashboard page"]
         BRG["console_bridge.py<br/>CDP bridge"]
+        BRS["browser.py<br/>resolve / auto-launch Chrome"]
     end
 
     subgraph Ext["🌐 External"]
         ZAI["chat.z.ai"]
         ZCODE["zcode.z.ai"]
         ROUTER["9Router / glm"]
-        CDP["Cloud browser (CDP)"]
+        CDP["Browser (CDP)<br/>local Chrome or cloud"]
     end
 
     A1 --> INJ
@@ -49,26 +50,28 @@ flowchart LR
     CLI --> INJ
     CLI --> CLM
     CLI --> CON
+    BRG --> BRS
     BRG <-->|drive + capture| CDP
+    BRS -->|launch headless| CDP
 
     classDef core fill:#1b2130,stroke:#5b8cff,color:#e7ecf3
     classDef ui fill:#141a30,stroke:#7c5cff,color:#e7ecf3
     classDef ext fill:#0d1220,stroke:#22d3ee,color:#e7ecf3
     class INJ,CLM,AUT,CON,CLI,SOL core
-    class HTML,BRG ui
+    class HTML,BRG,BRS ui
     class ZAI,ZCODE,ROUTER,CDP ext
 ```
 
 ## Web console (Level 3)
 
-The console is a four-page SPA served into the cloud browser by the bridge. The
+The console is a four-page SPA injected into your (local or cloud) browser by the bridge. The
 page and the bridge speak a tiny **request/response RPC** over the same CDP
 session — the page calls `window.bcodeRpc(JSON)` and the bridge answers with
 `window.__bcodeReply(id, ok, data)`. No sockets, ports or tunnels.
 
 ```mermaid
 flowchart TB
-    subgraph Browser["🌐 Cloud browser"]
+    subgraph Browser["🌐 Browser (local or cloud)"]
         UI["console.html (SPA)"]
         subgraph Pages["4 pages"]
             P1["Dashboard"]
@@ -159,6 +162,7 @@ zcode-claim-9router/
 │   ├── zcode_claim.py             CLI orchestrator (single / batch)
 │   ├── solverify.py               Solverify Aliyun solver client
 │   ├── console.html               Web UI console (4-page SPA)
+│   ├── browser.py                 CDP resolver: find/auto-launch Chrome (headless on VPS)
 │   ├── console_bridge.py          CDP bridge + RPC backend
 │   └── console_data/              work dir (gitignored): accounts, results, param
 ├── run.sh                         one-command launcher

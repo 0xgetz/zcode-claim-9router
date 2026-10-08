@@ -61,13 +61,17 @@ token / cookies de z.ai ──▶ consentimiento OAuth ──▶ JWT de ZCode �
 
 ## Dos formas de ejecutarlo
 
+**No se necesita cuenta en la nube.** El toolkit trae su propio navegador: si no indicas uno, lanza automáticamente un Chrome/Chromium local e inyecta la consola; en una máquina sin pantalla (VPS) pasa a modo headless solo.
+
 ### 1. Consola Web UI (recomendada)
 
-Se inyecta un panel clicable en un navegador en la nube; sus botones mueven el
+Se inyecta un panel clicable en un navegador (local o en la nube); sus botones mueven el
 pipeline por la misma sesión CDP — sin puertos ni túneles.
 
 ```bash
-python src/console_bridge.py --cdp "$BU_CDP_WS"
+python src/console_bridge.py                 # lanza Chrome local automáticamente
+python src/console_bridge.py --headless      # VPS
+python src/console_bridge.py --connect 127.0.0.1:9222
 ```
 
 Abre la vista en vivo del navegador. La **ZCode Pipeline Console** te permite:
@@ -96,7 +100,9 @@ python src/zcode_claim.py --jwt-file zjwt.txt --status
 
 - Python 3.9+
 - `websockets` (para el puente de consola) y `playwright` (para los pasos con navegador)
-- Un Chromium accesible por CDP (p. ej. un navegador en la nube de Browser Use vía `$BU_CDP_WS`)
+- **Navegador.** Prefiere Google Chrome / Chromium del sistema. Si no hay, `run.sh` instala el Chromium incluido de Playwright (`python -m playwright install chromium`).
+- **Conexión de navegador (opcional).** Apunta a uno existente con `--cdp "wss://…"`, `--connect host:port`, o deja que se lance en `localhost:9222` (cambia con `--port`). `--no-launch` evita lanzarlo.
+> **VPS headless.** El Chromium de Playwright necesita bibliotecas del sistema (`libglib`, `libnss3`, `libx11`, `libgbm`, `libasound2`, …): `python -m playwright install-deps chromium`. Sin pantalla usa `--headless=new`.
 
 ```bash
 pip install websockets playwright

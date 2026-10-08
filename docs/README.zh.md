@@ -58,13 +58,17 @@ z.ai token / cookies ──▶ OAuth 授权 ──▶ ZCode JWT ──▶ 领取
 
 ## 两种运行方式
 
+**无需云账号。** 工具自带浏览器：若未指定浏览器，会自动启动本地 Chrome/Chromium 并注入控制台；在无显示器的机器（VPS）上自动切换为无头模式。
+
 ### 1. Web UI 控制台(推荐)
 
 一个可点击的仪表盘会被注入到云浏览器;其按钮通过同一条 CDP 会话驱动流程
 —— 无需端口,无需隧道。
 
 ```bash
-python src/console_bridge.py --cdp "$BU_CDP_WS"
+python src/console_bridge.py                 # 自动启动本地 Chrome
+python src/console_bridge.py --headless      # VPS
+python src/console_bridge.py --connect 127.0.0.1:9222
 ```
 
 打开浏览器实时视图。**ZCode Pipeline Console** 让你:
@@ -93,7 +97,9 @@ python src/zcode_claim.py --jwt-file zjwt.txt --status
 
 - Python 3.9+
 - `websockets`(控制台桥接)与 `playwright`(浏览器驱动步骤)
-- 可通过 CDP 访问的 Chromium(例如通过 `$BU_CDP_WS` 的 Browser Use 云浏览器)
+- **浏览器。** 优先系统 Google Chrome / Chromium；若没有，`run.sh` 会安装 Playwright 自带 Chromium（`python -m playwright install chromium`）。
+- **浏览器连接（可选）。** 用 `--cdp "wss://…"`、`--connect host:port` 连接已有浏览器，或在 `localhost:9222` 自动启动（`--port` 可改）。`--no-launch` 禁止启动。
+> **无头 VPS。** Playwright Chromium 需要常见系统库（`libglib`、`libnss3`、`libx11`、`libgbm`、`libasound2` 等）：`python -m playwright install-deps chromium`。无显示器时自动使用 `--headless=new`。
 
 ```bash
 pip install websockets playwright

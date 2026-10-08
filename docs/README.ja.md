@@ -62,11 +62,13 @@ z.ai token / cookies ──▶ OAuth 同意 ──▶ ZCode JWT ──▶ Start 
 
 ### 1. Web UI コンソール(推奨)
 
-クリック可能なダッシュボードがクラウドブラウザに注入され、そのボタンが同じ
+クリック可能なダッシュボードが（ローカルまたはクラウドの）ブラウザに注入され、そのボタンが同じ
 CDP セッション経由でパイプラインを駆動します — ポートもトンネルも不要。
 
 ```bash
-python src/console_bridge.py --cdp "$BU_CDP_WS"
+python src/console_bridge.py                 # ローカル Chrome を自動起動
+python src/console_bridge.py --headless      # VPS
+python src/console_bridge.py --connect 127.0.0.1:9222
 ```
 
 ブラウザのライブビューを開きます。**ZCode Pipeline Console** で:
@@ -95,7 +97,9 @@ python src/zcode_claim.py --jwt-file zjwt.txt --status
 
 - Python 3.9+
 - `websockets`(コンソールブリッジ)と `playwright`(ブラウザ駆動ステップ)
-- CDP で到達可能な Chromium(例: `$BU_CDP_WS` 経由の Browser Use クラウドブラウザ)
+- **ブラウザ。** システムの Google Chrome / Chromium を優先。無ければ `run.sh` が Playwright 同梱 Chromium を導入します（`python -m playwright install chromium`）。
+- **ブラウザ接続（任意）。** `--cdp "wss://…"`、`--connect host:port` で既存ブラウザに接続、または `localhost:9222` で自動起動（`--port` で変更）。`--no-launch` で起動を禁止。
+> **ヘッドレス VPS。** Playwright Chromium には一般的なシステムライブラリ（`libglib`、`libnss3`、`libx11`、`libgbm`、`libasound2` など）が必要です：`python -m playwright install-deps chromium`。ディスプレイが無ければ自動で `--headless=new` になります。
 
 ```bash
 pip install websockets playwright

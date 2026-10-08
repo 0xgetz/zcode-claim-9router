@@ -571,17 +571,33 @@ async def handle_command(cmd, cdp, sid, solver_sessions):
 
 
 async def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--cdp", default=os.environ.get("BU_CDP_WS"))
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--cdp", default=os.environ.get("BU_CDP_WS"),
+                    help="CDP websocket URL. Optional — omit to auto-launch a local browser.")
+    ap.add_argument("--connect-browser", dest="connect_browser",
+                    help="connect to an already-running browser at host:port")
+    ap.add_argument("--port", type=int, default=int(os.environ.get("CDP_PORT", "9222")),
+                    help="local remote-debugging port to find/launch (default 9222)")
+    ap.add_argument("--headless", action="store_true",
+                    help="force headless (auto on a VPS without a display)")
+    ap.add_argument("--no-launch", dest="no_launch", action="store_true",
+                    help="never auto-launch; require --cdp/--connect-browser")
+    ap.add_argument("--profile", help="named local profile dir (persists logins)")
+    ap.add_argument("--user-data-dir", dest="user_data_dir")
     args = ap.parse_args()
-    if not args.cdp:
-        raise SystemExit("need --cdp or BU_CDP_WS")
+
+    import browser as B
+    ws_url = B.resolve_cdp(cdp=args.cdp, connect=args.connect_browser,
+                           port=args.port, launch=not args.no_launch,
+                           headless=True if args.headless else None,
+                           user_data_dir=args.user_data_dir, profile=args.profile)
 
     ensure_work()
     with open(DASHBOARD, encoding="utf-8") as f:
         html = f.read()
 
-    cdp = CDP(args.cdp)
+    cdp = CDP(ws_url)
     await cdp.connect()
     tid = await pick_page(cdp)
     att = await cdp.send("Target.attachToTarget", {"targetId": tid, "flatten": True})
@@ -591,13 +607,16 @@ async def main():
     await cdp.send("Runtime.addBinding", {"name": "bcodeRpc"}, session_id=sid)
 
     await cdp.send("Page.navigate",
-                   {"url": "https://usercontent.browser-use.tools"}, session_id=sid)
-    await asyncio.sleep(2.5)
+                   {"url": "about:blank"}, session_id=sid)
+    await asyncio.sleep(1.0)
+    tree = await cdp.send("Page.getFrameTree", {}, session_id=sid)
+    frame_id = tree["result"]["frameTree"]["frame"]["id"]
     await cdp.send("Page.setDocumentContent",
-                   {"frameId": tid, "html": html}, session_id=sid)
+                   {"frameId": frame_id, "html": html}, session_id=sid)
 
     print(f"[bridge] console injected (target {tid})", flush=True)
     print(f"[bridge] work dir: {WORK}", flush=True)
+    print(f"[bridge] cdp: {ws_url}", flush=True)
 
     solver_sessions = []
 

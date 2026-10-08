@@ -383,10 +383,12 @@ document.querySelectorAll('nav button').forEach(b=>{
   };
 });
 
-/* ---------- persistence (localStorage) ---------- */
+/* ---------- persistence (localStorage, guarded for opaque origins) ---------- */
 const PERSIST = ['token','cookies','email','jwtfile','base','rpass','param','cap-param','import-text'];
-function saveFields(){ PERSIST.forEach(id=>{ const el=$(id); if(el) localStorage.setItem('zc:'+id, el.value); }); }
-function loadFields(){ PERSIST.forEach(id=>{ const el=$(id); if(el){ const v=localStorage.getItem('zc:'+id); if(v!=null && v!=='') el.value=v; } }); }
+const store = (()=>{ try{ localStorage.setItem('zc:__t','1'); localStorage.removeItem('zc:__t');
+  return localStorage; }catch(e){ const m={}; return {getItem:k=>m[k]??null, setItem:(k,v)=>{m[k]=String(v);}, removeItem:k=>{delete m[k];}}; } })();
+function saveFields(){ PERSIST.forEach(id=>{ const el=$(id); if(el){ try{ store.setItem('zc:'+id, el.value); }catch(e){} } }); }
+function loadFields(){ PERSIST.forEach(id=>{ const el=$(id); if(el){ try{ const v=store.getItem('zc:'+id); if(v!=null && v!=='') el.value=v; }catch(e){} } }); }
 document.addEventListener('input', e=>{ if(e.target && PERSIST.includes(e.target.id)) saveFields(); });
 window.addEventListener('beforeunload', saveFields);
 

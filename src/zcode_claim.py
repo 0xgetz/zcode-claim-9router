@@ -8,14 +8,24 @@ key, and registers every account into 9Router's `glm` provider.
 
 Examples
 --------
-  # one account from a plain token
+  # local laptop: auto-launch Chrome (a real window). No cloud needed.
+  python zcode_claim.py --token eyJ... --email me@x.com
+
+  # headless VPS: auto-launch a headless Chromium
+  python zcode_claim.py --headless --token eyJ... --email me@x.com
+
+  # attach to a Chrome you started yourself
+  #   chrome --remote-debugging-port=9222
+  python zcode_claim.py --connect-browser 127.0.0.1:9222 --token eyJ... --email me@x.com
+
+  # (optional) use a Browser Use cloud browser instead
   python zcode_claim.py --cdp "$BU_CDP_WS" --token eyJ... --email me@x.com
 
   # one account from a cookies export (JSON list, dict, or 'a=b; c=d')
-  python zcode_claim.py --cdp "$BU_CDP_WS" --cookies cookies.json --email me@x.com
+  python zcode_claim.py --cookies cookies.json --email me@x.com
 
   # batch file accounts.json: {"accounts":[{"email","password"|"token"|"cookies"}]}
-  python zcode_claim.py --cdp "$BU_CDP_WS" --accounts accounts.json --connect \\
+  python zcode_claim.py --accounts accounts.json --connect \\
       --base http://localhost:20128 --password 123456 --out claimed.json
 
   # check an already-claimed account
@@ -39,6 +49,22 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import claim as C
 import inject as I
+import browser as B
+
+
+def _resolve_browser(args, log=print):
+    """Find a usable CDP endpoint: --cdp URL, --connect host:port, or auto-launch
+    a local Chrome/Chromium (headless on a VPS). Falls back to $BU_CDP_WS."""
+    return B.resolve_cdp(
+        cdp=args.cdp,
+        connect=getattr(args, "connect_browser", None),
+        port=getattr(args, "cdp_port", None) or B.DEFAULT_PORT,
+        launch=not getattr(args, "no_launch", False),
+        headless=True if getattr(args, "headless", False) else None,
+        user_data_dir=getattr(args, "user_data_dir", None),
+        profile=getattr(args, "profile", None),
+        log=log,
+    )
 
 
 def _load_accounts(args):
@@ -146,10 +172,7 @@ def _solve_with_solverify(args, log=print):
 def _process_account(args, acct, log=print):
     email = acct.get("email", "?")
     log(f"\n=== {email} ===")
-    cdp = args.cdp or os.environ.get("BU_CDP_WS")
-    if not cdp:
-        raise SystemExit("need --cdp or BU_CDP_WS")
-
+    cdp = _resolve_browser(args, log)
     cookies = acct.get("cookies")
     token = acct.get("token")
     # If no direct token, log in when a password is available.
@@ -202,7 +225,19 @@ def _process_account(args, acct, log=print):
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--cdp", default=os.environ.get("BU_CDP_WS"))
+    ap.add_argument("--cdp", default=os.environ.get("BU_CDP_WS"),
+                    help="CDP websocket URL (ws://...). Optional — omit to auto-launch a local browser.")
+    ap.add_argument("--connect-browser", dest="connect_browser",
+                    help="connect to an already-running browser at host:port (default port 9222)")
+    ap.add_argument("--cdp-port", dest="cdp_port", type=int,
+                    help="local remote-debugging port to find/launch (default 9222)")
+    ap.add_argument("--headless", action="store_true",
+                    help="force a headless browser (auto on a VPS without a display)")
+    ap.add_argument("--no-launch", dest="no_launch", action="store_true",
+                    help="never auto-launch a browser; require --cdp/--connect")
+    ap.add_argument("--profile", help="named local profile dir (persists logins)")
+    ap.add_argument("--user-data-dir", dest="user_data_dir",
+                    help="explicit Chrome user-data-dir to use/launch")
     ap.add_argument("--email")
     ap.add_argument("--password")
     ap.add_argument("--token", help="z.ai bearer token")
