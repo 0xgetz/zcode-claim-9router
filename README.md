@@ -18,7 +18,52 @@
 
 ---
 
-## What this is
+## Web UI console
+
+The whole pipeline runs from a **full web console** that the bridge injects into
+your browser — no terminal, no ports, no tunnels. Four pages: **Dashboard**,
+**Accounts**, **Capture**, **Results**.
+
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard" width="780"><br>
+  <em>Dashboard — inject → claim → connect, plus a one-click “Run full pipeline”.</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/accounts.png" alt="Accounts" width="49%">
+  <img src="docs/screenshots/capture.png" alt="Capture" width="49%"><br>
+  <em>Batch account manager (add / import JSON / CSV / export) and the captcha +
+  credential upload page.</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/results.png" alt="Results" width="49%">
+  <img src="docs/screenshots/mobile-dashboard.png" alt="Mobile" width="24%"><br>
+  <em>Results viewer with JWT / Start-Plan status / 9Router connection, and a
+  responsive mobile layout.</em>
+</p>
+
+### ▶ Demo video
+
+A full walkthrough of the console (Dashboard → Accounts → Capture → Results):
+
+[`docs/demo.mp4`](docs/demo.mp4) — 20 s, 1280×720.
+
+> The demo uses mock data, so no real credentials appear.
+
+### Features
+
+| Page | What it does |
+|------|--------------|
+| **Dashboard** | Token/cookies → JWT, claim, connect, and a one-click **Run full pipeline** with a progress bar and live log. |
+| **Accounts** | Add accounts, import from **JSON / CSV / file drop**, export, remove, and **run a batch** through the whole pipeline. |
+| **Capture** | Opens the z.ai captcha tab, **auto-captures** the `captchaVerifyParam`, and uploads cookies/token files. |
+| **Results** | Per-stage JSON results, JWT plan-status check, and a small file read/write against the work dir. |
+
+Everything persists to `localStorage` (inputs survive a reload), and the bridge
+writes state to a `console_data/` work dir next to the source.
+
+## How this is
 
 A small, dependency-light toolkit that automates the **ZCode** free-trial
 ("Start Plan") workflow and wires the result into **9Router** as a `glm`
@@ -58,19 +103,27 @@ z.ai token / cookies ──▶ OAuth consent ──▶ ZCode JWT ──▶ claim
 
 ### 1. Web UI console (recommended)
 
-A clickable dashboard is injected into a cloud browser; its buttons drive the
-pipeline over the same CDP session — no ports, no tunnels.
+The launcher installs the two light deps, then injects the console into your
+browser and keeps it live:
+
+```bash
+./run.sh "$BU_CDP_WS"          # or: ./run.sh wss://<host>/devtools/browser/<id>
+```
+
+Prefer manual? The equivalent is:
 
 ```bash
 python src/console_bridge.py --cdp "$BU_CDP_WS"
 ```
 
-Open the browser's live view. The **ZCode Pipeline Console** lets you:
+Open the browser's live view and drive the four pages:
 
-1. **Inject** — paste a z.ai bearer token and/or cookies → *Inject / mint JWT*.
-2. **Claim** — *Open z.ai captcha tab*, solve the slider; the
-   `captchaVerifyParam` is captured automatically → *Claim Start Plan*.
-3. **Connect** — set the 9Router base/password → *Connect to 9Router*.
+1. **Dashboard** — paste a z.ai token/cookies → *Inject / mint JWT* → claim → connect,
+   or hit **Run full pipeline** in one click.
+2. **Accounts** — register many accounts and **run a batch** through the pipeline.
+3. **Capture** — *Open z.ai captcha tab*, sign in and solve the slider; the
+   `captchaVerifyParam` is captured automatically. Upload cookies/token files here too.
+4. **Results** — inspect each stage's JSON, check a JWT's plan status.
 
 ### 2. CLI orchestrator
 
@@ -102,17 +155,20 @@ pip install websockets playwright
 ```
 zcode-claim-9router/
 ├── assets/            logo + banner (svg + png)
-├── docs/              README translations (id, zh, ja, es) + STRUCTURE.md
+├── docs/              README translations (id, zh, ja, es), STRUCTURE.md,
+│   ├── screenshots/   console screenshots used in the READMEs
+│   └── demo.mp4       console demo video
 ├── examples/          sample account / config files
 ├── src/               the toolkit
-│   ├── inject.py          token/cookies → ZCode OAuth → JWT
+│   ├── inject.py          token/cookies → zcode OAuth → JWT
 │   ├── claim.py           Aliyun captcha + billing/claim
 │   ├── zauth.py           z.ai coding-plan API-key minting
 │   ├── connect_9router.py register a key as a glm connection
 │   ├── zcode_claim.py     CLI orchestrator
 │   ├── solverify.py       third-party Aliyun solver client
-│   ├── console.html       Web UI dashboard
-│   └── console_bridge.py  CDP bridge for the dashboard
+│   ├── console.html       Web UI console (4 pages)
+│   └── console_bridge.py  CDP bridge + RPC backend for the console
+├── run.sh             one-command launcher (auto-start the bridge)
 ├── CONTRIBUTING.md
 ├── LICENSE
 └── README.md

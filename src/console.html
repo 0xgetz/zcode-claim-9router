@@ -7,157 +7,623 @@
 <style>
   :root{
     --bg:#0b0d12; --panel:#141821; --panel2:#1b2130; --line:#262d3d;
-    --txt:#e7ecf3; --dim:#8b97ab; --acc:#5b8cff; --ok:#38c172; --warn:#e3a008; --err:#f05252;
-    font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    --txt:#e7ecf3; --dim:#8b97ab; --acc:#5b8cff; --acc2:#7c5cff;
+    --ok:#38c172; --warn:#e3a008; --err:#f05252;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--txt);min-height:100vh}
-  header{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px}
-  header h1{font-size:18px;margin:0;font-weight:650;letter-spacing:.2px}
-  header .sub{color:var(--dim);font-size:12px}
-  .wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:18px 22px;max-width:1200px}
-  @media(max-width:900px){.wrap{grid-template-columns:1fr}}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
-  .card h2{font-size:14px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
-  .card p.note{color:var(--dim);font-size:12px;margin:0 0 12px;line-height:1.4}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--txt);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    display:flex;flex-direction:column;min-height:100vh}
+  /* top bar */
+  .top{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--line);
+    position:sticky;top:0;background:rgba(11,13,18,.92);backdrop-filter:blur(8px);z-index:20;flex-wrap:wrap}
+  @media(max-width:640px){
+    .top{gap:8px;padding:10px 12px}
+    .brand small{display:none}
+    nav{order:3;width:100%;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+    nav button{white-space:nowrap}
+    main{padding:12px}
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.2px}
+  .brand svg{width:30px;height:30px}
+  .brand small{color:var(--dim);font-weight:500;font-size:12px;margin-left:2px}
+  nav{display:flex;gap:4px;margin-left:8px;flex-wrap:wrap}
+  nav button{background:transparent;border:none;color:var(--dim);font:inherit;font-size:13px;font-weight:600;
+    padding:8px 13px;border-radius:9px;cursor:pointer}
+  nav button:hover{color:var(--txt);background:var(--panel2)}
+  nav button.active{color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2))}
+  .grow{flex:1}
+  .conn{font-size:12px;color:var(--dim);display:flex;align-items:center;gap:6px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--err)}
+  .dot.on{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+  /* layout */
+  main{padding:20px;max-width:1240px;margin:0 auto;width:100%;flex:1}
+  .page{display:none}
+  .page.active{display:block}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+  .card h2{font-size:14px;margin:0 0 6px;display:flex;align-items:center;gap:8px}
+  .card p.note{color:var(--dim);font-size:12px;margin:0 0 12px;line-height:1.45}
   label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
-  input,textarea{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+  input,textarea,select{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);
     border-radius:9px;padding:9px 11px;font-size:13px;font-family:inherit}
-  textarea{resize:vertical;min-height:56px}
-  input:focus,textarea:focus{outline:none;border-color:var(--acc)}
-  .row{display:flex;gap:10px}
-  .row>div{flex:1}
-  button{cursor:pointer;border:none;border-radius:10px;padding:11px 16px;font-size:13px;font-weight:600;
-    color:#fff;background:var(--acc);margin-top:14px;width:100%;transition:.15s}
-  button:hover{filter:brightness(1.1)}
-  button:disabled{opacity:.45;cursor:default}
+  textarea{resize:vertical;min-height:56px;font-family:ui-monospace,Menlo,Consolas,monospace}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc)}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .row>div{flex:1;min-width:140px}
+  button.btn{cursor:pointer;border:none;border-radius:10px;padding:11px 16px;font-size:13px;font-weight:600;
+    color:#fff;background:var(--acc);transition:.15s}
+  button.btn:hover{filter:brightness(1.1)}
+  button.btn:disabled{opacity:.45;cursor:default}
+  button.btn.full{width:100%;margin-top:14px}
+  button.btn.ghost{background:var(--panel2);border:1px solid var(--line);color:var(--txt)}
+  button.btn.danger{background:#3a1a1a;border:1px solid #6b2323;color:#ffb4b4}
+  button.btn.ok{background:linear-gradient(135deg,#1f8f4e,#38c172)}
+  .hint{font-size:12px;color:var(--dim);margin-top:8px;line-height:1.4}
+  code{background:var(--panel2);padding:1px 5px;border-radius:5px;font-size:11px}
   .badge{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--panel2);color:var(--dim);
     border:1px solid var(--line);font-weight:600}
   .badge.running{background:#1e2a44;color:#8fb3ff;border-color:#2c4a86}
   .badge.done{background:#12331f;color:var(--ok);border-color:#1d5c34}
   .badge.error{background:#3a1a1a;color:var(--err);border-color:#6b2323}
-  .log{grid-column:1/-1}
-  #log{background:#080a0e;border:1px solid var(--line);border-radius:12px;padding:12px;
-    height:280px;overflow:auto;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-    font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+  /* log */
+  #log-wrap{background:#080a0e;border:1px solid var(--line);border-radius:12px;padding:12px;height:250px;
+    overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.55;white-space:pre-wrap;
+    word-break:break-word}
   .l-out{color:#c9d4e3}.l-ok{color:var(--ok)}.l-err{color:var(--err)}
-  .hint{font-size:12px;color:var(--dim);margin-top:8px;line-height:1.4}
-  code{background:var(--panel2);padding:1px 5px;border-radius:5px;font-size:11px}
-  a{color:var(--acc)}
+  /* progress */
+  .prog{height:8px;border-radius:999px;background:var(--panel2);overflow:hidden;margin-top:10px;display:none}
+  .prog .bar{height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .3s}
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  tr:last-child td{border-bottom:none}
+  td.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+  .pill{padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600}
+  .pill.ok{background:#12331f;color:var(--ok)}.pill.err{background:#3a1a1a;color:var(--err)}
+  pre.json{background:#080a0e;border:1px solid var(--line);border-radius:10px;padding:12px;overflow:auto;
+    max-height:260px;font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .drop{border:2px dashed var(--line);border-radius:12px;padding:22px;text-align:center;color:var(--dim);
+    cursor:pointer;transition:.15s}
+  .drop:hover,.drop.over{border-color:var(--acc);color:var(--txt);background:var(--panel2)}
+  .copy{background:var(--panel2);border:1px solid var(--line);color:var(--dim);border-radius:7px;
+    font-size:11px;padding:3px 8px;cursor:pointer}
+  .copy:hover{color:var(--txt)}
 </style>
 </head>
 <body>
-<header>
-  <h1>ZCode Pipeline Console</h1>
-  <span class="sub">inject &rarr; claim Start Plan &rarr; connect 9Router</span>
-</header>
 
-<div class="wrap">
-
-  <div class="card">
-    <h2>1 &middot; Inject <span class="badge" id="badge-inject">idle</span></h2>
-    <p class="note">Mint a ZCode JWT from a z.ai session. Paste a bearer <b>token</b> or a
-      <b>cookies</b> string (or export).</p>
-    <label>z.ai bearer token</label>
-    <textarea id="token" placeholder="eyJhbGciOi..."></textarea>
-    <label>z.ai cookies (optional)</label>
-    <input id="cookies" placeholder="a=b; c=d   (or path to a cookies JSON)">
-    <label>email (optional, for account bookkeeping)</label>
-    <input id="email" placeholder="you@example.com">
-    <button id="btn-inject" onclick="doInject()">Inject / mint JWT</button>
-    <div class="hint">Writes the JWT to <code>outputs/…/console_inject.json</code> and prints it in the log.</div>
+<div class="top">
+  <div class="brand">
+    <svg viewBox="0 0 200 200" aria-hidden="true">
+      <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#5b8cff"/><stop offset=".55" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3ee"/>
+      </linearGradient></defs>
+      <path d="M100 42 L150 71 L150 129 L100 158 L50 129 L50 71 Z" fill="none" stroke="url(#lg)" stroke-width="7" stroke-linejoin="round"/>
+      <path d="M74 74 H126 L74 126 H126" fill="none" stroke="url(#lg)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    ZCode Console <small>inject → claim → connect</small>
   </div>
+  <nav>
+    <button data-page="dashboard" class="active">Dashboard</button>
+    <button data-page="accounts">Accounts</button>
+    <button data-page="capture">Capture</button>
+    <button data-page="results">Results</button>
+  </nav>
+  <div class="grow"></div>
+  <div class="conn"><span class="dot" id="conn-dot"></span><span id="conn-txt">connecting…</span></div>
+</div>
 
-  <div class="card">
-    <h2>2 &middot; Claim Start Plan <span class="badge" id="badge-claim">idle</span></h2>
-    <p class="note">Needs the Aliyun <b>captchaVerifyParam</b>. Solve the slider in the z.ai
-      tab (the tab next to this one), then copy the param here. <b>Tip:</b> the param is a long
-      base64 blob.</p>
-    <label>captchaVerifyParam</label>
-    <textarea id="param" placeholder="paste the param from the solved captcha"></textarea>
-    <label>zcode JWT file (optional &mdash; else it re-mints from token/cookies above)</label>
-    <input id="jwtfile" placeholder="/tmp/bcode/zjwt.txt">
-    <button id="btn-claim" onclick="doClaim()">Claim Start Plan</button>
-    <div class="hint">Paste the param right after solving &mdash; it is single-use and short-lived.</div>
-  </div>
+<main>
 
-  <div class="card">
-    <h2>3 &middot; Connect 9Router <span class="badge" id="badge-connect">idle</span></h2>
-    <p class="note">Register the claimed account as a <code>glm</code> provider connection in
-      9Router.</p>
-    <div class="row">
-      <div><label>9Router base</label><input id="base" value="http://localhost:20128"></div>
-      <div><label>password</label><input id="rpass" value="123456"></div>
+<!-- ============== DASHBOARD ============== -->
+<section class="page active" id="page-dashboard">
+  <div class="grid">
+    <div class="card">
+      <h2>1 · Inject / mint JWT <span class="badge" id="badge-inject">idle</span></h2>
+      <p class="note">Mint a ZCode JWT from a z.ai session. Paste a bearer <b>token</b> or
+        <b>cookies</b> (or pick a saved account on the Accounts page).</p>
+      <label>z.ai bearer token</label>
+      <textarea id="token" placeholder="eyJhbGciOi..."></textarea>
+      <label>z.ai cookies</label>
+      <input id="cookies" placeholder="a=b; c=d   (or upload on the Capture page)">
+      <label>email (optional)</label>
+      <input id="email" placeholder="you@example.com">
+      <button class="btn full" id="btn-inject" onclick="doInject()">Inject / mint JWT</button>
     </div>
-    <button id="btn-connect" onclick="doConnect()">Connect to 9Router</button>
-    <div class="hint">Uses the JWT file above, or re-mints from the token/cookies on the left.</div>
+
+    <div class="card">
+      <h2>2 · Claim Start Plan <span class="badge" id="badge-claim">idle</span></h2>
+      <p class="note">Needs an Aliyun <b>captchaVerifyParam</b>. Solve the slider on the
+        <b>Capture</b> page; it drops in here automatically.</p>
+      <label>captchaVerifyParam <button class="copy" onclick="copyEl('param')">copy</button></label>
+      <textarea id="param" placeholder="auto-filled after you solve the slider"></textarea>
+      <label>zcode JWT file (optional)</label>
+      <input id="jwtfile" placeholder="path to a .jwt / .txt (or use Results → save)">
+      <label style="display:flex;align-items:center;gap:8px;color:var(--txt)">
+        <input type="checkbox" id="connect-after" style="width:auto" checked>
+        Also connect to 9Router after a successful claim
+      </label>
+      <button class="btn full" id="btn-claim" onclick="doClaim()">Claim Start Plan</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>3 · Connect 9Router <span class="badge" id="badge-connect">idle</span></h2>
+      <p class="note">Register the claimed account as a <code>glm</code> provider connection.</p>
+      <div class="row">
+        <div><label>9Router base</label><input id="base" value="http://localhost:20128"></div>
+        <div><label>password</label><input id="rpass" value="123456"></div>
+      </div>
+      <button class="btn full" id="btn-connect" onclick="doConnect()">Connect to 9Router</button>
+    </div>
+
+    <div class="card">
+      <h2>Run everything</h2>
+      <p class="note">One account: inject → claim → connect, in order. The claim step
+        pauses on the captcha (solve on the Capture page), then continues automatically.</p>
+      <button class="btn full ok" id="btn-all" onclick="doAll()">Run full pipeline</button>
+      <div class="prog" id="progress"><div class="bar" id="progress-bar"></div></div>
+      <div class="hint">Uses the token/cookies above and the 9Router settings on the left.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Log <span class="badge" id="badge-log">ready</span>
+      <button class="copy" style="margin-left:auto" onclick="clearLog()">clear</button></h2>
+    <div id="log-wrap"></div>
+  </div>
+</section>
+
+<!-- ============== ACCOUNTS ============== -->
+<section class="page" id="page-accounts">
+  <div class="card">
+    <h2>Batch account manager <span class="badge" id="badge-accounts">0</span></h2>
+    <p class="note">Register many accounts, then run them all. Import from JSON
+      (<code>{"accounts":[…]}</code> or a list) or CSV lines
+      <code>email,password,token</code> / <code>email,token</code>.</p>
+    <div class="row">
+      <div><label>email</label><input id="acc-email" placeholder="you@example.com"></div>
+      <div><label>password (optional)</label><input id="acc-password" placeholder="••••••••"></div>
+    </div>
+    <div class="row">
+      <div><label>token (optional)</label><input id="acc-token" placeholder="eyJ..."></div>
+      <div><label>cookies (optional)</label><input id="acc-cookies" placeholder="a=b; c=d"></div>
+    </div>
+    <button class="btn full" onclick="addAccount()">Add account</button>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Import</h2>
+      <p class="note">Paste JSON or CSV lines. Or drop a file below.</p>
+      <textarea id="import-text" style="min-height:120px" placeholder='{"accounts":[{"email":"a@x.com","token":"eyJ..."}]}
+or
+a@x.com,password123
+b@x.com,eyJhbGciOi...'></textarea>
+      <div class="row" style="margin-top:10px">
+        <div><button class="btn" onclick="importAccounts()">Import pasted</button></div>
+        <div><button class="btn ghost" onclick="exportAccounts()">Export JSON</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Import from file</h2>
+      <div class="drop" id="acc-drop">Drop a .json / .csv / .txt here, or click to choose</div>
+      <input type="file" id="acc-file" accept=".json,.csv,.txt" style="display:none">
+      <div class="hint">Nothing leaves this browser — the file is read locally and sent to your bridge.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Accounts <span class="badge" id="badge-accounts2">0</span>
+      <button class="copy" style="margin-left:auto" onclick="clearAccounts()">clear all</button></h2>
+    <table id="acc-table"><thead>
+      <tr><th>#</th><th>email</th><th>credentials</th><th>jwt</th><th></th></tr>
+    </thead><tbody></tbody></table>
+    <div class="hint" id="acc-empty">No accounts yet.</div>
+  </div>
+
+  <div class="card">
+    <h2>Run batch</h2>
+    <p class="note">Runs the full pipeline for every account, in order. Accounts that
+      need a captcha use the param solved on the Capture page.</p>
+    <label style="display:flex;align-items:center;gap:8px;color:var(--txt)">
+      <input type="checkbox" id="batch-connect" style="width:auto" checked>
+      Connect each account to 9Router
+    </label>
+    <button class="btn full ok" id="btn-batch" onclick="runBatch()">Run batch</button>
+  </div>
+</section>
+
+<!-- ============== CAPTURE ============== -->
+<section class="page" id="page-capture">
+  <div class="grid">
+    <div class="card">
+      <h2>Captcha capture <span class="badge" id="badge-capture">idle</span></h2>
+      <p class="note">The Aliyun slider runs in a <b>z.ai tab</b> this bridge opens. Sign in
+        there and drag the slider; the <code>captchaVerifyParam</code> is captured
+        automatically and shows below.</p>
+      <button class="btn full" onclick="openCaptcha()">Open z.ai captcha tab</button>
+      <div class="line" style="height:14px"></div>
+      <button class="btn full ghost" onclick="grabParam()">Grab captured param</button>
+      <label>captured param <button class="copy" onclick="copyEl('cap-param')">copy</button></label>
+      <textarea id="cap-param" style="min-height:90px" placeholder="waiting for a solve…"></textarea>
+      <div class="hint">Single-use and short-lived — grab it and claim right away.</div>
+    </div>
+
+    <div class="card">
+      <h2>Upload cookies / token</h2>
+      <p class="note">Bring a browser cookie export or a raw token. It is written to the
+        bridge work dir and can be loaded into the Dashboard.</p>
+      <div class="drop" id="cred-drop">Drop a cookies/token .json / .txt here, or click to choose</div>
+      <input type="file" id="cred-file" accept=".json,.txt,.cookies" style="display:none">
+      <label>or paste a token</label>
+      <textarea id="cred-token" placeholder="eyJhbGciOi..."></textarea>
+      <label>or paste cookies</label>
+      <input id="cred-cookies" placeholder="a=b; c=d">
+      <div class="row" style="margin-top:10px">
+        <div><button class="btn" onclick="saveCreds()">Save to work dir</button></div>
+        <div><button class="btn ghost" onclick="loadCredsToDashboard()">Load into Dashboard</button></div>
+      </div>
+      <div class="hint" id="cred-status"></div>
+    </div>
   </div>
 
   <div class="card">
     <h2>Captcha solver tab</h2>
-    <p class="note">The Aliyun slider runs in the <b>z.ai tab</b>. If that tab is not open yet,
-      the bridge can open it. After you drag the slider and it passes, the param is written to
-      <code>/tmp/bcode/login_param.txt</code> and printed in the log.</p>
-    <div class="row">
-      <div><button id="btn-opencaptcha" onclick="doOpenCaptcha()">Open z.ai captcha tab</button></div>
-      <div><button id="btn-grabparam" onclick="doGrabParam()">Grab captured param &rarr; box 2</button></div>
+    <p class="note">The slider is anti-automation: scripted drags are rejected. Solve it
+      by hand once here — everything downstream is automatic. The tab lives in the same
+      cloud browser; use the live view to interact.</p>
+    <div class="hint">Tip: if the challenge looks impossible, hit the ↻ refresh button in
+      the widget and try again.</div>
+  </div>
+</section>
+
+<!-- ============== RESULTS ============== -->
+<section class="page" id="page-results">
+  <div class="card">
+    <h2>Pipeline results
+      <button class="copy" style="margin-left:auto" onclick="refreshResults()">refresh</button></h2>
+    <p class="note">Output of the last run or batch: JWT, Start-Plan status and the
+      9Router connection, per account.</p>
+    <div id="results-body"><div class="hint">No results yet — run the pipeline or a batch.</div></div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Check a JWT (plan status)</h2>
+      <label>JWT file path</label>
+      <input id="status-jwt" placeholder="/path/to/zjwt.txt">
+      <button class="btn full" onclick="checkStatus()">Check status</button>
+      <pre class="json" id="status-out">—</pre>
     </div>
-    <div class="hint">Then click <b>Claim Start Plan</b>.</div>
+    <div class="card">
+      <h2>Work dir</h2>
+      <p class="note">Where the bridge writes results, accounts and the captured param.
+        You can read any file the bridge can see.</p>
+      <label>file path</label>
+      <input id="fs-path" placeholder="/path/to/file">
+      <div class="row" style="margin-top:10px">
+        <div><button class="btn" onclick="fsRead()">Read</button></div>
+        <div><button class="btn ghost" onclick="fsWrite()">Write</button></div>
+      </div>
+      <label>contents</label>
+      <textarea id="fs-content" style="min-height:100px"></textarea>
+    </div>
   </div>
+</section>
 
-  <div class="card log">
-    <h2>Log <span class="badge" id="badge-log">ready</span></h2>
-    <div id="log"></div>
-    <div class="hint">Buttons talk to the local Python bridge over the browser's CDP session &mdash; no network ports needed.</div>
-  </div>
-
-</div>
+</main>
 
 <script>
-const logEl = document.getElementById('log');
-function ts(){ const d=new Date(); return d.toTimeString().slice(0,8); }
+/* ============================================================
+   ZCode Console — front-end
+   Talks to the local Python bridge over the cloud browser's CDP
+   session via Runtime.addBinding("bcodeRpc") + window.__bcodeReply.
+   ============================================================ */
+
+const $ = id => document.getElementById(id);
+const logEl = $('log-wrap');
+function ts(){ return new Date().toTimeString().slice(0,8); }
+
+/* ---------- logging / status ---------- */
 window.__bcodeLog = function(level, text){
   const d=document.createElement('div');
-  d.className='l-'+level;
-  d.textContent='['+ts()+'] '+text;
+  d.className='l-'+level; d.textContent='['+ts()+'] '+text;
   logEl.appendChild(d); logEl.scrollTop=logEl.scrollHeight;
 };
 window.__bcodeStatus = function(stage, state, msg){
-  const b=document.getElementById('badge-'+stage); if(!b) return;
-  b.className='badge '+state; b.textContent=(msg?msg:state);
-  const btn=document.getElementById('btn-'+stage); if(btn) btn.disabled=(state==='running');
+  const b=$('badge-'+stage);
+  if(b){ b.className='badge '+state; b.textContent = msg || state; }
+};
+window.__bcodeParam = function(val){
+  $('param').value = val; $('cap-param').value = val;
+  $('badge-capture').className='badge done'; $('badge-capture').textContent='captured';
+  log('ok','captcha param captured → box 2');
+};
+function log(l,t){ window.__bcodeLog(l,t); }
+function setBadge(stage,state,msg){ const b=$('badge-'+stage); if(b){b.className='badge '+state;b.textContent=msg||state;} }
+
+/* ---------- RPC ---------- */
+let rpcSeq = 0; const rpcWait = {};
+function rpc(action, payload){
+  return new Promise((resolve,reject)=>{
+    if(typeof window.bcodeRpc !== 'function'){ reject(new Error('bridge not connected')); return; }
+    const id = ++rpcSeq; rpcWait[id] = {resolve,reject};
+    window.bcodeRpc(JSON.stringify({id, action, payload: payload||{}}));
+    setTimeout(()=>{ if(rpcWait[id]){ delete rpcWait[id]; reject(new Error('timeout: '+action)); } }, 180000);
+  });
+}
+window.__bcodeReply = function(id, ok, data){
+  const w = rpcWait[id]; if(!w) return; delete rpcWait[id];
+  ok ? w.resolve(data) : w.reject(new Error((data&&data.error)||'rpc failed'));
 };
 
-function send(action, payload){
-  const cmd={action:action, payload:payload||{}};
-  if(typeof window.bcodeCmd!=='function'){
-    window.__bcodeLog('err','bcodeCmd binding not available (bridge not attached)'); return;
+/* ---------- connection heartbeat ---------- */
+async function heartbeat(){
+  try{
+    await rpc('ping',{});
+    $('conn-dot').className='dot on'; $('conn-txt').textContent='bridge connected';
+  }catch(e){
+    $('conn-dot').className='dot'; $('conn-txt').textContent='bridge offline';
   }
-  window.bcodeCmd(JSON.stringify(cmd));
 }
-function doInject(){
-  send('inject',{token:document.getElementById('token').value,
-                 cookies:document.getElementById('cookies').value,
-                 email:document.getElementById('email').value});
-}
-function doClaim(){
-  send('claim',{captcha_param:document.getElementById('param').value,
-                jwt:document.getElementById('jwtfile').value,
-                token:document.getElementById('token').value,
-                cookies:document.getElementById('cookies').value,
-                email:document.getElementById('email').value});
-}
-function doConnect(){
-  send('connect',{base:document.getElementById('base').value,
-                  password:document.getElementById('rpass').value,
-                  jwt:document.getElementById('jwtfile').value,
-                  token:document.getElementById('token').value,
-                  cookies:document.getElementById('cookies').value});
-}
-function doOpenCaptcha(){ send('opencaptcha',{}); }
-function doGrabParam(){ send('grabparam',{}); }
 
-window.__bcodeLog('ok','console loaded — waiting for bridge');
+/* ---------- navigation ---------- */
+document.querySelectorAll('nav button').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); $('page-'+b.dataset.page).classList.add('active');
+    if(b.dataset.page==='accounts') refreshAccounts();
+    if(b.dataset.page==='results') refreshResults();
+  };
+});
+
+/* ---------- persistence (localStorage) ---------- */
+const PERSIST = ['token','cookies','email','jwtfile','base','rpass','param','cap-param','import-text'];
+function saveFields(){ PERSIST.forEach(id=>{ const el=$(id); if(el) localStorage.setItem('zc:'+id, el.value); }); }
+function loadFields(){ PERSIST.forEach(id=>{ const el=$(id); if(el){ const v=localStorage.getItem('zc:'+id); if(v!=null && v!=='') el.value=v; } }); }
+document.addEventListener('input', e=>{ if(e.target && PERSIST.includes(e.target.id)) saveFields(); });
+window.addEventListener('beforeunload', saveFields);
+
+/* ---------- helpers ---------- */
+function copyEl(id){ const el=$(id); navigator.clipboard?.writeText(el.value||''); }
+function clearLog(){ logEl.innerHTML=''; }
+async function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function setProgress(p){ $('progress').style.display = p>0?'block':'none'; $('progress-bar').style.width=(p*100)+'%'; }
+
+/* ---------- dashboard: single stages ---------- */
+async function doInject(){
+  setBadge('inject','running','minting…'); $('btn-inject').disabled=true;
+  try{
+    const r = await rpc('inject',{token:$('token').value, cookies:$('cookies').value, email:$('email').value});
+    setBadge('inject','done','done');
+    if(r.result) log('ok','inject result: '+JSON.stringify(r.result).slice(0,300));
+    await refreshResults();
+  }catch(e){ setBadge('inject','error',e.message.slice(0,40)); log('err',e.message); }
+  finally{ $('btn-inject').disabled=false; }
+}
+
+async function doClaim(){
+  const param = $('param').value.trim();
+  if(!param){ log('err','claim needs a captcha param — solve on the Capture page'); setBadge('claim','error','no param'); return; }
+  setBadge('claim','running','claiming…'); $('btn-claim').disabled=true;
+  try{
+    const r = await rpc('claim',{captcha_param:param, jwt:$('jwtfile').value, token:$('token').value, cookies:$('cookies').value, email:$('email').value});
+    setBadge('claim','done','claimed');
+    log('ok','claim result: '+JSON.stringify(r.result||{}).slice(0,300));
+    if($('connect-after').checked){
+      log('out','continuing → connect 9Router');
+      await doConnect();
+    }
+    await refreshResults();
+  }catch(e){ setBadge('claim','error',e.message.slice(0,40)); log('err',e.message); }
+  finally{ $('btn-claim').disabled=false; }
+}
+
+async function doConnect(){
+  setBadge('connect','running','connecting…'); $('btn-connect').disabled=true;
+  try{
+    const r = await rpc('connect',{base:$('base').value, password:$('rpass').value, jwt:$('jwtfile').value, token:$('token').value, cookies:$('cookies').value});
+    setBadge('connect','done','connected');
+    log('ok','connect result: '+JSON.stringify(r.result||{}).slice(0,300));
+    await refreshResults();
+  }catch(e){ setBadge('connect','error',e.message.slice(0,40)); log('err',e.message); }
+  finally{ $('btn-connect').disabled=false; }
+}
+
+async function doAll(){
+  const btn=$('btn-all'); btn.disabled=true; setProgress(0.1);
+  try{
+    log('ok','=== full pipeline: inject ===');
+    setProgress(0.15);
+    try{ await rpc('inject',{token:$('token').value, cookies:$('cookies').value, email:$('email').value}); }
+    catch(e){ log('err','inject: '+e.message); }
+    setProgress(0.4);
+    log('ok','=== full pipeline: claim ===');
+    let param = $('param').value.trim();
+    if(!param){ log('out','waiting for captcha param… open Capture and solve'); }
+    for(let i=0;i<90 && !param;i++){ await sleep(2000); param=$('param').value.trim(); if(param) break; }
+    if(param){
+      try{ await rpc('claim',{captcha_param:param, jwt:$('jwtfile').value, token:$('token').value, cookies:$('cookies').value, email:$('email').value}); }
+      catch(e){ log('err','claim: '+e.message); }
+    } else { log('err','no captcha param captured — skipping claim'); }
+    setProgress(0.8);
+    log('ok','=== full pipeline: connect ===');
+    try{ await rpc('connect',{base:$('base').value, password:$('rpass').value, jwt:$('jwtfile').value, token:$('token').value, cookies:$('cookies').value}); }
+    catch(e){ log('err','connect: '+e.message); }
+    setProgress(1);
+    log('ok','=== full pipeline done ===');
+    await refreshResults();
+  } finally { btn.disabled=false; setTimeout(()=>setProgress(0),1200); }
+}
+
+/* ---------- accounts ---------- */
+async function refreshAccounts(){
+  try{
+    const d = await rpc('accounts.list',{});
+    renderAccounts(d.accounts||[]);
+  }catch(e){ log('err','accounts: '+e.message); }
+}
+function renderAccounts(list){
+  const tb = $('acc-table').querySelector('tbody'); tb.innerHTML='';
+  $('badge-accounts').textContent = list.length;
+  $('badge-accounts2').textContent = list.length;
+  $('acc-empty').style.display = list.length? 'none':'block';
+  list.forEach((a,i)=>{
+    const creds = [a.token?'token':'', a.cookies?'cookies':'', a.password?'password':''].filter(Boolean).join(', ')||'—';
+    const tr=document.createElement('tr');
+    tr.innerHTML = `<td>${i+1}</td><td>${esc(a.email||'—')}</td><td class="mono">${esc(creds)}</td>
+      <td class="mono">${a.jwt?'set':'—'}</td>
+      <td><button class="copy" onclick="removeAccount(${i})">remove</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+async function addAccount(){
+  const p = {email:$('acc-email').value, password:$('acc-password').value, token:$('acc-token').value, cookies:$('acc-cookies').value};
+  if(!p.email && !p.token && !p.cookies){ log('err','account needs at least an email, token or cookies'); return; }
+  try{
+    const d = await rpc('accounts.add',p);
+    ['acc-email','acc-password','acc-token','acc-cookies'].forEach(id=>$(id).value='');
+    renderAccounts(d.accounts||[]); log('ok','account added');
+  }catch(e){ log('err','add: '+e.message); }
+}
+async function removeAccount(i){
+  try{ const d = await rpc('accounts.remove',{index:i}); renderAccounts(d.accounts||[]); log('ok','removed #'+(i+1)); }
+  catch(e){ log('err','remove: '+e.message); }
+}
+async function clearAccounts(){
+  if(!confirm('Remove all accounts?')) return;
+  try{ const d = await rpc('accounts.clear',{}); renderAccounts(d.accounts||[]); log('ok','accounts cleared'); }
+  catch(e){ log('err','clear: '+e.message); }
+}
+async function importAccounts(){
+  const text = $('import-text').value;
+  if(!text.trim()){ log('err','nothing to import'); return; }
+  try{
+    const d = await rpc('accounts.import',{text});
+    renderAccounts(d.accounts||[]); log('ok',`imported ${d.added} (total ${d.total})`);
+  }catch(e){ log('err','import: '+e.message); }
+}
+async function exportAccounts(){
+  try{
+    const d = await rpc('accounts.export',{});
+    const blob = new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+    downloadBlob(blob,'accounts.json'); log('ok','exported accounts.json');
+  }catch(e){ log('err','export: '+e.message); }
+}
+async function runBatch(){
+  $('btn-batch').disabled=true; setProgress(0.05);
+  try{
+    log('ok','=== batch run ===');
+    const r = await rpc('batch.run',{captcha_param:$('param').value.trim(), base:$('base').value, password:$('rpass').value, connect:$('batch-connect').checked});
+    log('ok',`batch done: ${(r.results||[]).length} accounts`);
+    setProgress(1); await refreshResults();
+  }catch(e){ log('err','batch: '+e.message); }
+  finally{ $('btn-batch').disabled=false; setTimeout(()=>setProgress(0),1200); }
+}
+
+/* file drop for accounts */
+function wireDrop(dropId, fileId, onText){
+  const drop=$(dropId), file=$(fileId);
+  drop.onclick=()=>file.click();
+  file.onchange=()=>{ if(file.files[0]) readFile(file.files[0], onText); };
+  ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
+  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
+  drop.addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(f) readFile(f,onText); });
+}
+function readFile(f, cb){ const r=new FileReader(); r.onload=()=>cb(r.result, f.name); r.readAsText(f); }
+function downloadBlob(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); }
+
+/* ---------- capture ---------- */
+async function openCaptcha(){
+  try{
+    setBadge('capture','running','opening…');
+    await rpc('opencaptcha',{});
+    setBadge('capture','done','tab open');
+    log('ok','z.ai tab opened — sign in and solve the slider there');
+  }catch(e){ setBadge('capture','error',e.message.slice(0,40)); log('err',e.message); }
+}
+async function grabParam(){
+  try{
+    const r = await rpc('grabparam',{});
+    $('cap-param').value = r.param; $('param').value = r.param;
+    setBadge('capture','done','captured'); log('ok','param grabbed');
+  }catch(e){ log('err','grab: '+e.message); }
+}
+async function saveCreds(){
+  try{
+    const token=$('cred-token').value.trim(), cookies=$('cred-cookies').value.trim();
+    const content = JSON.stringify({token, cookies}, null, 2);
+    const r = await rpc('fs.write',{path:'creds.json', content});
+    $('cred-status').textContent='saved to '+r.path;
+    log('ok','credentials saved to work dir');
+  }catch(e){ log('err','save: '+e.message); }
+}
+function loadCredsToDashboard(){
+  const t=$('cred-token').value.trim(), c=$('cred-cookies').value.trim();
+  if(t) $('token').value=t;
+  if(c) $('cookies').value=c;
+  saveFields(); log('ok','loaded into Dashboard');
+}
+
+/* ---------- results ---------- */
+async function refreshResults(){
+  try{
+    const d = await rpc('results.get',{});
+    renderResults(d.results||[]);
+  }catch(e){ /* silent */ }
+}
+function renderResults(list){
+  const el=$('results-body');
+  if(!list.length){ el.innerHTML='<div class="hint">No results yet — run the pipeline or a batch.</div>'; return; }
+  let html='';
+  list.forEach((r,i)=>{
+    const ok = r.exit===0;
+    const label = (r.stage? r.stage+' · ':'') + (r.email||('account '+(i+1)));
+    html += `<div style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <span class="pill ${ok?'ok':'err'}">${ok?'ok':'exit '+r.exit}</span>
+        <b>${esc(label)}</b>
+      </div>
+      <pre class="json">${esc(JSON.stringify(r.result||{},null,2)).slice(0,1200)}</pre></div>`;
+  });
+  el.innerHTML=html;
+}
+async function checkStatus(){
+  const jwt=$('status-jwt').value.trim();
+  if(!jwt){ log('err','give a JWT file path'); return; }
+  try{ const r = await rpc('status',{jwt}); $('status-out').textContent = r.log||'(no output)'; }
+  catch(e){ $('status-out').textContent='error: '+e.message; }
+}
+async function fsRead(){
+  try{ const r = await rpc('fs.read',{path:$('fs-path').value}); $('fs-content').value=r.content; log('ok','read '+r.path); }
+  catch(e){ log('err','read: '+e.message); }
+}
+async function fsWrite(){
+  try{ const r = await rpc('fs.write',{path:$('fs-path').value, content:$('fs-content').value}); log('ok','wrote '+r.path); }
+  catch(e){ log('err','write: '+e.message); }
+}
+
+/* ---------- bootstrap ---------- */
+wireDrop('acc-drop','acc-file',(text)=>{ const t=$('import-text'); t.value=text; importAccounts(); });
+wireDrop('cred-drop','cred-file',(text,name)=>{
+  try{ const o=JSON.parse(text); if(o.token)$('cred-token').value=o.token; if(o.cookies)$('cred-cookies').value=o.cookies;
+       if(o.access_token)$('cred-token').value=o.access_token; }
+  catch(e){ if(text.trim().startsWith('eyJ')) $('cred-token').value=text.trim(); else $('cred-cookies').value=text.trim(); }
+  $('cred-status').textContent='loaded '+name; log('ok','file loaded: '+name);
+});
+
+loadFields();
+log('ok','console loaded — connecting to bridge…');
+heartbeat(); setInterval(heartbeat, 5000);
+refreshAccounts(); refreshResults();
 </script>
 </body>
 </html>

@@ -27,3 +27,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# Console work dir
+console_data/

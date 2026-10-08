@@ -18,6 +18,10 @@
 
 ---
 
+## Consola Web UI
+
+Todo el pipeline se ejecuta desde una **consola web** que el puente inyecta en tu navegador: sin terminal, sin puertos. Cuatro páginas: **Dashboard**, **Accounts**, **Capture** y **Results**. Mira [`docs/demo.mp4`](demo.mp4) o las capturas en el README principal.
+
 ## Qué es esto
 
 Un toolkit ligero, con pocas dependencias, que automatiza el flujo de prueba

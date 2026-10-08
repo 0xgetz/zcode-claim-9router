@@ -18,6 +18,10 @@
 
 ---
 
+## Konsol Web UI
+
+Seluruh alur berjalan dari **konsol web** yang disuntikkan bridge ke browser — tanpa terminal, tanpa port. Empat halaman: **Dashboard**, **Accounts**, **Capture**, dan **Results**. Lihat [`docs/demo.mp4`](demo.mp4) atau tangkapan layar di README utama.
+
 ## Apa ini
 
 Toolkit ringan dengan sedikit dependensi yang mengotomatiskan alur **ZCode**

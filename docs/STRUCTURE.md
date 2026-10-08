@@ -59,6 +59,79 @@ flowchart LR
     class ZAI,ZCODE,ROUTER,CDP ext
 ```
 
+## Web console (Level 3)
+
+The console is a four-page SPA served into the cloud browser by the bridge. The
+page and the bridge speak a tiny **request/response RPC** over the same CDP
+session — the page calls `window.bcodeRpc(JSON)` and the bridge answers with
+`window.__bcodeReply(id, ok, data)`. No sockets, ports or tunnels.
+
+```mermaid
+flowchart TB
+    subgraph Browser["🌐 Cloud browser"]
+        UI["console.html (SPA)"]
+        subgraph Pages["4 pages"]
+            P1["Dashboard"]
+            P2["Accounts"]
+            P3["Capture"]
+            P4["Results"]
+        end
+        ZT["z.ai tab<br/>(captcha solver)"]
+        UI --- Pages
+    end
+
+    subgraph Bridge["🐍 console_bridge.py"]
+        RPC["RPC dispatcher"]
+        ACC["accounts store<br/>accounts.json"]
+        RES["results store<br/>results.json"]
+        FS["work dir<br/>console_data/"]
+        PP["param poller"]
+    end
+
+    subgraph Pipeline["⚙️ zcode_claim.py"]
+        INJ2["inject"]
+        CLM2["claim"]
+        CN2["connect"]
+        BAT["batch"]
+    end
+
+    UI -->|"bcodeRpc"| RPC
+    RPC -->|"__bcodeReply"| UI
+    RPC --> ACC
+    RPC --> RES
+    RPC --> FS
+    RPC --> INJ2 & CLM2 & CN2 & BAT
+    PP -->|reads __capParams| ZT
+    PP -->|writes| FS
+    P2 --> ACC
+    P4 --> RES
+
+    classDef ui fill:#141a30,stroke:#7c5cff,color:#e7ecf3
+    classDef br fill:#1b2130,stroke:#5b8cff,color:#e7ecf3
+    classDef pl fill:#0d1220,stroke:#22d3ee,color:#e7ecf3
+    class UI,P1,P2,P3,P4,ZT ui
+    class RPC,ACC,RES,FS,PP br
+    class INJ2,CLM2,CN2,BAT pl
+```
+
+### RPC actions
+
+| Action | Page | Purpose |
+|--------|------|---------|
+| `ping` | all | connection heartbeat (top-right dot) |
+| `inject` / `claim` / `connect` | Dashboard | single stages |
+| `opencaptcha` / `grabparam` | Capture | open the z.ai tab, read the captured param |
+| `accounts.list/add/remove/clear/import/export` | Accounts | batch manager |
+| `batch.run` | Accounts | run every account through the pipeline |
+| `fs.read` / `fs.write` | Results | read/write files in the work dir |
+| `results.get` | Results | last run / batch results |
+| `status` | Results | jwt-file plan status |
+
+### Screenshots
+
+See [`docs/screenshots/`](screenshots) (dashboard, accounts, capture, results,
+mobile) and the walkthrough video [`docs/demo.mp4`](demo.mp4).
+
 ## Plain-text overview
 
 ```
@@ -71,6 +144,9 @@ zcode-claim-9router/
 │   ├── README.zh.md               中文
 │   ├── README.ja.md               日本語
 │   ├── README.es.md               Español
+│   ├── screenshots/               console screenshots (png)
+│   ├── demo.mp4                   console walkthrough video
+│   ├── record_demo.py             regenerates demo.mp4
 │   └── STRUCTURE.md               this file
 ├── examples/
 │   ├── accounts.example.json      batch input shape
@@ -82,8 +158,10 @@ zcode-claim-9router/
 │   ├── connect_9router.py         register a key as a `glm` connection
 │   ├── zcode_claim.py             CLI orchestrator (single / batch)
 │   ├── solverify.py               Solverify Aliyun solver client
-│   ├── console.html               Web UI dashboard
-│   └── console_bridge.py          CDP bridge for the dashboard
+│   ├── console.html               Web UI console (4-page SPA)
+│   ├── console_bridge.py          CDP bridge + RPC backend
+│   └── console_data/              work dir (gitignored): accounts, results, param
+├── run.sh                         one-command launcher
 ├── CONTRIBUTING.md
 ├── LICENSE
 └── README.md

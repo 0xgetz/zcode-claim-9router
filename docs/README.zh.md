@@ -18,6 +18,10 @@
 
 ---
 
+## Web UI 控制台
+
+整个流程都可在 bridge 注入浏览器的 **Web 控制台** 中运行 —— 无需终端、无需端口。共四页:**Dashboard**、**Accounts**、**Capture**、**Results**。演示视频 [`docs/demo.mp4`](demo.mp4),截图见主 README。
+
 ## 这是什么
 
 一个依赖极少的轻量工具包,自动化 **ZCode** 免费试用("Start Plan")流程,并把结果
