@@ -42,6 +42,7 @@ WORK = os.environ.get("ZCODE_CONSOLE_WORK", os.path.join(HERE, "console_data"))
 ACCOUNTS_FILE = os.path.join(WORK, "accounts.json")
 RESULTS_FILE = os.path.join(WORK, "results.json")
 PARAM_FILE = os.path.join(WORK, "captcha_param.txt")
+BASE_DIR = os.path.abspath(WORK)
 
 # Installed on every new document in the z.ai solver tab: wraps initAliyunCaptcha
 # so the moment the slider passes the produced captchaVerifyParam is stashed in
@@ -123,6 +124,36 @@ def extract_json_objects(text):
                     except Exception:
                         pass
     return out
+
+
+def sanitize_path(user_path, base_dir=BASE_DIR):
+    """Prevent path traversal attacks by ensuring path is within base_dir.
+
+    Args:
+        user_path: User-provided path (can be relative or absolute)
+        base_dir: Base directory that all paths must be within (default: WORK)
+
+    Returns:
+        Absolute, sanitized path within base_dir
+
+    Raises:
+        ValueError: If path attempts to traverse outside base_dir
+    """
+    # Resolve the candidate and base directory so symlinks in any parent
+    # component cannot escape the work directory. realpath() also resolves
+    # existing junctions on Windows and works for paths that do not exist yet.
+    base_real = os.path.realpath(os.path.abspath(base_dir))
+    path_real = os.path.realpath(os.path.abspath(os.path.join(base_dir, user_path)))
+    try:
+        inside = os.path.commonpath((base_real, path_real)) == base_real
+    except ValueError:
+        # Different Windows drives (or otherwise incompatible path forms)
+        # cannot have a common directory.
+        inside = False
+    if not inside:
+        raise ValueError(f"Path traversal detected: {user_path} (outside {base_dir})")
+
+    return path_real
 
 
 # --------------------------------------------------------------------------- #
@@ -493,7 +524,11 @@ async def cmd_fs_read(cdp, sid, p):
     path = p.get("path") or ""
     if not path:
         return False, {"error": "no path"}
-    return True, {"path": path, "content": safe_read(path)}
+    try:
+        safe_path = sanitize_path(path)
+    except ValueError as e:
+        return False, {"error": str(e)}
+    return True, {"path": safe_path, "content": safe_read(safe_path)}
 
 
 async def cmd_fs_write(cdp, sid, p):
@@ -501,10 +536,14 @@ async def cmd_fs_write(cdp, sid, p):
     content = p.get("content") or ""
     if not path:
         return False, {"error": "no path"}
-    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
+    try:
+        safe_path = sanitize_path(path)
+    except ValueError as e:
+        return False, {"error": str(e)}
+    os.makedirs(os.path.dirname(safe_path), exist_ok=True)
+    with open(safe_path, "w", encoding="utf-8") as f:
         f.write(content)
-    return True, {"path": path, "bytes": len(content)}
+    return True, {"path": safe_path, "bytes": len(content)}
 
 
 async def cmd_results_get(cdp, sid, p):
